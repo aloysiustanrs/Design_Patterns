@@ -1,38 +1,59 @@
-# different strategies are encapsulated in separate classes that all implement a common interface
-# context class (Values) can switch between different strategies without modifying its core logic
-
 from abc import ABC, abstractmethod
 
-
-class FilterStrategy(ABC):
+# Strategy interface
+class DiscountStrategy(ABC):
     @abstractmethod
-    def removeValue(self, val):
+    def apply_discount(self, price):
         pass
 
+# Concrete Strategy classes
+class NoDiscount(DiscountStrategy):
+    def apply_discount(self, price):
+        return price
 
-class RemoveNegativeStrategy(FilterStrategy):
-    def removeValue(self, val):
-        return val < 0
+class TenPercentDiscount(DiscountStrategy):
+    def apply_discount(self, price):
+        return price * 0.9
 
+class TwentyPercentDiscount(DiscountStrategy):
+    def apply_discount(self, price):
+        return price * 0.8
 
-class RemoveOddStrategy(FilterStrategy):
-    def removeValue(self, val):
-        return abs(val) % 2
+# Context class
+class ShoppingCart:
+    def __init__(self, discount_strategy):
+        self.items = []
+        self.discount_strategy = discount_strategy
 
+    def add_item(self, item):
+        self.items.append(item)
 
-class Values:
-    def __init__(self, vals):
-        self.vals = vals
+    def calculate_total(self):
+        total = sum(item.price for item in self.items)
+        return self.discount_strategy.apply_discount(total)
 
-    def filter(self, strategy):
-        res = []
-        for n in self.vals:
-            if not strategy.removeValue(n):
-                res.append(n)
-        return res
+# Using the ShoppingCart
+class Item:
+    def __init__(self, name, price):
+        self.name = name
+        self.price = price
 
+item1 = Item("Item 1", 100)
+item2 = Item("Item 2", 200)
 
-values = Values([-7, -4, -1, 0, 2, 6, 9])
+cart_no_discount = ShoppingCart(NoDiscount())
+cart_10_percent_discount = ShoppingCart(TenPercentDiscount())
+cart_20_percent_discount = ShoppingCart(TwentyPercentDiscount())
 
-print(values.filter(RemoveNegativeStrategy()))
-print(values.filter(RemoveOddStrategy()))
+cart_no_discount.add_item(item1)
+cart_no_discount.add_item(item2)
+
+cart_10_percent_discount.add_item(item1)
+cart_10_percent_discount.add_item(item2)
+
+cart_20_percent_discount.add_item(item1)
+cart_20_percent_discount.add_item(item2)
+
+print("Total (No Discount):", cart_no_discount.calculate_total())
+print("Total (10% Discount):", cart_10_percent_discount.calculate_total())
+print("Total (20% Discount):", cart_20_percent_discount.calculate_total())
